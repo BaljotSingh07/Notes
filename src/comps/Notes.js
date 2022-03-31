@@ -1,4 +1,4 @@
-import { Navbar, Title, TextInput, Button, ScrollArea, Popover, Group, List, Breadcrumbs, LoadingOverlay, SegmentedControl, Anchor, Affix, ActionIcon} from '@mantine/core';
+import { Navbar, Title, TextInput, Button, ScrollArea, Popover, Group, List, Breadcrumbs, LoadingOverlay, SegmentedControl, Anchor, Text} from '@mantine/core';
 import { useNotifications } from '@mantine/notifications';
 import { RichTextEditor } from '@mantine/rte';
 import {useInputState} from '@mantine/hooks'
@@ -158,10 +158,25 @@ function NestedNav({loadNoteHanlder}){
 }
 
 function Notes({hidden}){
-    const [content, setContent] = useInputState('');
+    const [content, setContent] = useState('');
+    const contentRef = useRef();
     const [currentlyEdditing, setCurrentlyEdditing] = useState();
+    const [saved, setSaved] = useState();
     const [token, setToken] = useState('');
     const notification = useNotifications();
+
+    useEffect(() => {
+        
+        if(saved === false & currentlyEdditing != undefined){
+            notification.showNotification({
+                id : "saved",
+                message : <Anchor onClick={() => {save()}}>You have unsaved work click here to save.</Anchor>,
+                autoClose : false,
+                disallowClose : true,
+                color: 'red',
+            })
+        }
+    }, [saved])
 
     function getContent(id){
         fetch(`https://o3145qgy04.execute-api.us-east-1.amazonaws.com/beta/notes?id=${id}`,{
@@ -172,6 +187,7 @@ function Notes({hidden}){
         }).then(jsonData => {
             setCurrentlyEdditing(id)
             setContent(jsonData.Items[0].Content.S)
+            setSaved(true);
             notification.showNotification({
                 title : "Loaded",
                 message : `${jsonData.Items[0].Title.S} was loaded successfully`,
@@ -207,21 +223,12 @@ function Notes({hidden}){
     }, [])
 
     function save(){
-        notification.showNotification({
-            id : 'saving',
-            title: "Saving",
-            message : "Saving your data, please wait.",
-            color: 'yellow',
-            loading : true,
-            icon : <Done/>
-        })
-        
         fetch(`https://o3145qgy04.execute-api.us-east-1.amazonaws.com/beta/notes`,{
             method: "PUT",
             headers: {Authorization : token, "Content-Type" : "application/json"},
             body: JSON.stringify({
                 id : currentlyEdditing,
-                content : content
+                content : contentRef.current.value
             })
         })
         .then(data => {
@@ -229,15 +236,15 @@ function Notes({hidden}){
         }).then(jsonData => {
             //console.log(jsonData)
             //setContent(jsonData)
-            notification.hideNotification('saving');
+            //notification.hideNotification('saving');
             notification.showNotification({
                 title : "Saved",
                 message : "You data has been saved successfully.",
                 color: 'green',
-                loading : false,
                 icon : <Done/>
             })
-            
+            setSaved(true);
+            notification.hideNotification('saved');
         }).catch(err => {
             notification.showNotification({
                 title: "Error",
@@ -251,11 +258,7 @@ function Notes({hidden}){
     return(
         <Group style={hidden ? {display : "none"}  : {}} noWrap>
             <NestedNav loadNoteHanlder={getContent}></NestedNav>
-            <Affix position={{ bottom: 20, right: 20 }} >
-                <ActionIcon onClick={save} radius={100} size={50} color={'blue'} variant="filled"><Save/></ActionIcon>
-                
-            </Affix>
-            <RichTextEditor value={content} onChange={setContent} style={{height: "95vh", borderTop: "None", borderBottom: "None", borderRadius: "0px", overflow: "auto", width: "100%"}}></RichTextEditor>
+            <RichTextEditor value={content} ref={contentRef} onChange={(value) => {setContent(value); setSaved(false)}} style={{height: "95vh", borderTop: "None", borderBottom: "None", borderRadius: "0px", overflow: "auto", width: "100%"}}></RichTextEditor>
         </Group>
     )
 }

@@ -8,7 +8,7 @@ import {NotificationsProvider} from '@mantine/notifications';
 
 ReactDOM.render(
   <React.StrictMode>
-    <MantineProvider theme={{ colorScheme: 'light' }} withGlobalStyles>
+    <MantineProvider theme={{ colorScheme: 'light', primaryColor: "teal" }} withGlobalStyles>
       <NotificationsProvider autoClose={2000} position='bottom-center'>
         <App />
       </NotificationsProvider>
