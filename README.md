@@ -8,7 +8,7 @@ An note taking web application build using AWS.
 | ------------- | ------------- | ------------- |------------- |------------- |
 
 **React.js**- For front end <br>
-**Amazon API Gateway**- Used for create API that connects front end to dynamodb <br>
+**Amazon API Gateway**- Used to create API that connects front end to dynamodb <br>
 **Amazon DynamoDB**- Storing folders and notes <br>
 **Amazon Cognito**- User authentication <br>
 **Amazon S3**- Hosting <br>
